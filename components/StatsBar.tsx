@@ -18,15 +18,22 @@ function StatValue({ stat, active }: { stat: Stat; active: boolean }) {
 
   useEffect(() => {
     if (!numeric || !active) return;
-    if (reduced) return setN(target);
 
+    // Reduced motion lands on the final figure on the very first frame, but
+    // it still goes through the rAF path rather than setting state straight
+    // from the effect body. The prerendered HTML is built with
+    // `useReducedMotion` server-side null, so the preference only becomes
+    // known on the client's first render — jumping to the target during
+    // render would be a hydration mismatch, and doing it synchronously in
+    // the effect body costs a second render pass on every mount.
     let frame = 0;
     const start = performance.now();
-    const dur = 1100;
+    const dur = reduced ? 0 : 1100;
     const tick = (now: number) => {
-      const t = Math.min(1, (now - start) / dur);
-      // Expo-out, matching the page's easing.
-      setN(Math.round(target * (1 - Math.pow(2, -10 * t))));
+      const t = dur > 0 ? Math.min(1, (now - start) / dur) : 1;
+      // Expo-out, matching the page's easing. Pinned at the endpoint so the
+      // counter settles on the figure itself rather than a whisker below it.
+      setN(t < 1 ? Math.round(target * (1 - Math.pow(2, -10 * t))) : target);
       if (t < 1) frame = requestAnimationFrame(tick);
     };
     frame = requestAnimationFrame(tick);

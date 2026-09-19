@@ -37,6 +37,11 @@ export default function Photo({
   }, []);
 
   return (
+    // next/image is deliberately not in the path: the export is static and
+    // `images.unoptimized` is set, so it would add a wrapper and a loader
+    // around the same CDN URL while discarding the native-width cap that
+    // `srcSetFor` applies. The srcset below is the optimisation.
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       ref={ref}
       src={srcFor(img, priority ? 1920 : 1280)}
