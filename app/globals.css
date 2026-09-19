@@ -1,0 +1,357 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Design tokens — Silver Touch
+   Light, airy and sky-tinted, in the spirit of the reference sites.
+   Dual accent: amber = solar / EPC, cyan = BESS / storage.
+   `--accent` is interpolated at runtime by AccentDriver as you scroll.
+
+   Each accent has two values. The vibrant one is for GRAPHICS (bars, dots,
+   fills, glows) where saturation matters; the `-ink` one is darker and is for
+   TEXT, because the vibrant amber only reaches ~3.9:1 on white and small
+   copy needs 4.5:1.
+--------------------------------------------------------------------------- */
+@theme {
+  --color-bg: #f4f8fb;
+  --color-bg-2: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-2: #eef3f8;
+  --color-line: #e1e9f1;
+  --color-line-2: #c6d3e0;
+
+  --color-amber: #e8890b;
+  --color-amber-ink: #99590a;
+  --color-cyan: #0fa3c4;
+  --color-cyan-ink: #0a6780;
+
+  --color-ink: #0c1520;
+  --color-muted: #4f5d6e;
+  --color-muted-2: #8494a5;
+
+  --font-display: var(--font-space-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Registering the accent as a typed custom property is what makes it
+   *transitionable* — an unregistered `--accent` would snap between values.
+   With this, the whole page warms and cools as one continuous gesture and
+   the browser does the interpolation on the compositor, not JS. */
+@property --accent {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #e8890b;
+}
+@property --accent-ink {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #99590a;
+}
+@property --accent-soft {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #fdf0dc;
+}
+
+:root {
+  /* Amber is the at-rest value, so the page is correct before hydration. */
+  --accent: #e8890b;
+  --accent-ink: #99590a;
+  --accent-soft: #fdf0dc;
+  transition:
+    --accent 700ms var(--ease-out-expo),
+    --accent-ink 700ms var(--ease-out-expo),
+    --accent-soft 700ms var(--ease-out-expo);
+}
+
+/* AccentDriver flips this attribute as tonal sections take the viewport. */
+:root[data-tone="cyan"] {
+  --accent: #0fa3c4;
+  --accent-ink: #0a6780;
+  --accent-soft: #dcf2f8;
+}
+:root[data-tone="amber"] {
+  --accent: #e8890b;
+  --accent-ink: #99590a;
+  --accent-soft: #fdf0dc;
+}
+/* Manufacturing sits between the two business lines. */
+:root[data-tone="mixed"] {
+  --accent: #5f9e4a;
+  --accent-ink: #3d6b2e;
+  --accent-soft: #e6f2e0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    transition: none;
+  }
+}
+
+* {
+  border-color: var(--color-line);
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Lenis drives scroll itself; native smooth scrolling would fight it. */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  /* Belt and braces against any child overflowing on small screens. */
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+/* Scrollbar ------------------------------------------------------------- */
+::-webkit-scrollbar {
+  width: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-line-2);
+  border-radius: 999px;
+  border: 3px solid var(--color-bg);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* Utilities ------------------------------------------------------------- */
+
+/* Graphics take the vibrant accent; text takes the darker one. */
+.text-accent {
+  color: var(--accent-ink);
+}
+.bg-accent {
+  background-color: var(--accent);
+}
+.border-accent {
+  border-color: var(--accent);
+}
+.bg-accent-soft {
+  background-color: var(--accent-soft);
+}
+
+/* Section eyebrow — small mono label above a heading. */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent-ink);
+}
+
+/* Soft lift, used where the references use shadow rather than borders. */
+.card-lift {
+  box-shadow:
+    0 1px 2px rgb(12 21 32 / 0.04),
+    0 8px 24px -8px rgb(12 21 32 / 0.08);
+}
+.card-lift-lg {
+  box-shadow:
+    0 2px 4px rgb(12 21 32 / 0.04),
+    0 24px 56px -16px rgb(12 21 32 / 0.14);
+}
+
+/* Hairline that fades out at both ends. */
+.rule-fade {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--color-line-2) 15%,
+    var(--color-line-2) 85%,
+    transparent
+  );
+}
+
+/* Placeholder figures. Every unverified number on the page carries this so
+   invented data cannot ship unnoticed — see lib/content.ts. */
+[data-placeholder="true"] {
+  text-decoration: underline dotted currentColor;
+  text-underline-offset: 6px;
+  text-decoration-thickness: 1px;
+  cursor: help;
+}
+
+/* Reduced motion ---------------------------------------------------------
+   Framer Motion is told separately (useReducedMotion); this catches CSS
+   animation and anything that slips past. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Animated current on the single-line diagram. Direction is flipped per
+   conductor via `animation-direction`, so one keyframe set serves both
+   charge and discharge. */
+@keyframes sld-dash {
+  to {
+    stroke-dashoffset: -36;
+  }
+}
+.sld-flow {
+  animation: sld-dash 1.1s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sld-flow {
+    animation: none;
+  }
+}
+
+/* Dispatch scrubber. Styled from scratch in both engines so the control
+   matches the instrument panel rather than the OS. `--pct` is set inline
+   and fills the track up to the playhead. */
+.dispatch-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 22px;
+  width: 100%;
+  background: transparent;
+  cursor: ew-resize;
+}
+.dispatch-range:focus-visible {
+  outline: none;
+}
+
+/* WebKit */
+.dispatch-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    #0fa3c4 0%,
+    #0fa3c4 var(--pct, 0%),
+    #dbe5ee var(--pct, 0%),
+    #dbe5ee 100%
+  );
+}
+.dispatch-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 4px solid #0fa3c4;
+  box-shadow: 0 1px 4px rgb(12 21 32 / 0.2);
+  transition: transform 180ms var(--ease-out-expo);
+}
+.dispatch-range:hover::-webkit-slider-thumb,
+.dispatch-range:focus-visible::-webkit-slider-thumb {
+  transform: scale(1.18);
+}
+
+/* Firefox */
+.dispatch-range::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: #dbe5ee;
+}
+.dispatch-range::-moz-range-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: #0fa3c4;
+}
+.dispatch-range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 4px solid #0fa3c4;
+  box-shadow: 0 1px 4px rgb(12 21 32 / 0.2);
+}
+
+/* Calculator sliders reuse the same treatment in the live accent. */
+.calc-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 22px;
+  width: 100%;
+  background: transparent;
+  cursor: pointer;
+}
+.calc-range:focus-visible {
+  outline: none;
+}
+.calc-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(
+    to right,
+    var(--accent) 0%,
+    var(--accent) var(--pct, 0%),
+    #dbe5ee var(--pct, 0%),
+    #dbe5ee 100%
+  );
+}
+.calc-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: -7px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 4px solid var(--accent);
+  box-shadow: 0 1px 4px rgb(12 21 32 / 0.2);
+  transition: transform 180ms var(--ease-out-expo);
+}
+.calc-range:hover::-webkit-slider-thumb,
+.calc-range:focus-visible::-webkit-slider-thumb {
+  transform: scale(1.15);
+}
+.calc-range::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: #dbe5ee;
+}
+.calc-range::-moz-range-progress {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--accent);
+}
+.calc-range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 4px solid var(--accent);
+  box-shadow: 0 1px 4px rgb(12 21 32 / 0.2);
+}
