@@ -1,7 +1,13 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useInView, useReducedMotion } from "framer-motion";
+import {
+  motion,
+  useInView,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+} from "framer-motion";
 import { BESS } from "@/lib/content";
 import {
   socAt,
@@ -11,10 +17,12 @@ import {
   MODE_HOURS,
   type Mode,
 } from "@/lib/dispatch";
+import { IMAGES } from "@/lib/images";
 import CellArray from "./viz/CellArray";
 import SocCurve from "./viz/SocCurve";
 import ThermalMap from "./viz/ThermalMap";
 import SingleLine from "./viz/SingleLine";
+import Photo from "./Photo";
 import Reveal from "./Reveal";
 
 /** Seconds of real time per simulated hour when running. */
@@ -28,6 +36,13 @@ export default function BessShowcase() {
   const [hour, setHour] = useState(12.5);
   // The visitor taking hold of the controls always wins over autoplay.
   const [manual, setManual] = useState(false);
+
+  // Slow drift on the grid plate, the same gesture the EPC section uses.
+  const { scrollYProgress } = useScroll({
+    target: ref,
+    offset: ["start end", "end start"],
+  });
+  const plateY = useTransform(scrollYProgress, [0, 1], ["-7%", "7%"]);
 
   const running = inView && !manual && !reduced;
 
@@ -74,19 +89,43 @@ export default function BessShowcase() {
       />
 
       <div className="relative mx-auto max-w-7xl">
-        <div className="mb-12 max-w-3xl md:mb-16">
-          <Reveal>
-            <span className="eyebrow">{BESS.eyebrow}</span>
-          </Reveal>
-          <Reveal delay={0.08}>
-            <h2 className="mt-5 font-display text-[clamp(1.85rem,4.4vw,3.2rem)] leading-[1.06] font-medium tracking-[-0.025em] text-balance">
-              {BESS.headline}
-            </h2>
-          </Reveal>
-          <Reveal delay={0.16}>
-            <p className="mt-6 max-w-xl text-[0.98rem] leading-relaxed text-muted">
-              {BESS.sub}
-            </p>
+        <div className="mb-12 grid gap-10 md:mb-16 lg:grid-cols-[1fr_0.82fr] lg:items-end lg:gap-14">
+          <div className="max-w-3xl">
+            <Reveal>
+              <span className="eyebrow">{BESS.eyebrow}</span>
+            </Reveal>
+            <Reveal delay={0.08}>
+              <h2 className="mt-5 font-display text-[clamp(1.85rem,4.4vw,3.2rem)] leading-[1.06] font-medium tracking-[-0.025em] text-balance">
+                {BESS.headline}
+              </h2>
+            </Reveal>
+            <Reveal delay={0.16}>
+              <p className="mt-6 max-w-xl text-[0.98rem] leading-relaxed text-muted">
+                {BESS.sub}
+              </p>
+            </Reveal>
+          </div>
+
+          {/* The grid the storage answers to. Sits beside the intro rather
+              than above the panel, so the instrument stays the thing the
+              eye lands on. */}
+          <Reveal delay={0.2} y={40}>
+            <div className="relative card-lift h-[210px] overflow-hidden rounded-2xl sm:h-[270px] lg:h-[300px]">
+              <motion.div
+                style={reduced ? undefined : { y: plateY }}
+                className="absolute inset-0 scale-110"
+              >
+                <Photo
+                  img={IMAGES.substationApproach}
+                  sizes="(max-width: 1024px) 100vw, 40vw"
+                />
+              </motion.div>
+              <div className="absolute inset-x-0 bottom-0 p-4">
+                <span className="inline-block rounded-full bg-white/90 px-4 py-2 font-mono text-[10px] tracking-[0.16em] text-ink uppercase backdrop-blur-md">
+                  Point of common coupling
+                </span>
+              </div>
+            </div>
           </Reveal>
         </div>
 
