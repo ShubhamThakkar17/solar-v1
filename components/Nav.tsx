@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { motion, useScroll, useMotionValueEvent, AnimatePresence } from "framer-motion";
+import {
+  motion,
+  useScroll,
+  useMotionValueEvent,
+  AnimatePresence,
+  useReducedMotion,
+} from "framer-motion";
 import { COMPANY, NAV_LINKS } from "@/lib/content";
 import { EASE } from "@/lib/motion";
 
@@ -9,6 +15,11 @@ export default function Nav() {
   const { scrollY, scrollYProgress } = useScroll();
   const [solid, setSolid] = useState(false);
   const [open, setOpen] = useState(false);
+  const reduced = useReducedMotion();
+
+  // Framer drives these as inline transforms, so the global CSS
+  // prefers-reduced-motion rule cannot reach them — they have to opt out here.
+  const t = (d: number) => (reduced ? { duration: 0 } : { duration: d, ease: EASE });
 
   useMotionValueEvent(scrollY, "change", (v) => setSolid(v > 80));
 
@@ -62,17 +73,17 @@ export default function Nav() {
           >
             <motion.span
               animate={open ? { rotate: 45, y: 6 } : { rotate: 0, y: 0 }}
-              transition={{ duration: 0.3, ease: EASE }}
+              transition={t(0.3)}
               className="block h-px w-5 bg-ink"
             />
             <motion.span
               animate={open ? { opacity: 0 } : { opacity: 1 }}
-              transition={{ duration: 0.2 }}
+              transition={t(0.2)}
               className="block h-px w-5 bg-ink"
             />
             <motion.span
               animate={open ? { rotate: -45, y: -6 } : { rotate: 0, y: 0 }}
-              transition={{ duration: 0.3, ease: EASE }}
+              transition={t(0.3)}
               className="block h-px w-5 bg-ink"
             />
           </button>
@@ -89,10 +100,10 @@ export default function Nav() {
       <AnimatePresence>
         {open && (
           <motion.nav
-            initial={{ opacity: 0, y: -12 }}
+            initial={reduced ? { opacity: 0 } : { opacity: 0, y: -12 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -12 }}
-            transition={{ duration: 0.35, ease: EASE }}
+            exit={reduced ? { opacity: 0 } : { opacity: 0, y: -12 }}
+            transition={t(0.35)}
             className="fixed inset-x-0 top-14 z-40 border-b border-line bg-[#F4F8FB]/97 px-4 py-6 backdrop-blur-xl md:hidden"
           >
             <ul className="flex flex-col gap-1">

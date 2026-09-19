@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { NOTIFY, CONTACT } from "@/lib/content";
 import { EASE } from "@/lib/motion";
 import Reveal from "./Reveal";
 
 export default function Notify() {
+  const reduced = useReducedMotion();
   const [email, setEmail] = useState("");
   const [state, setState] = useState<"idle" | "error" | "done">("idle");
 
@@ -94,10 +95,10 @@ export default function Notify() {
                     {state === "done" && (
                       <motion.p
                         key="done"
-                        initial={{ opacity: 0, y: -4 }}
+                        initial={reduced ? { opacity: 0 } : { opacity: 0, y: -4 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
-                        transition={{ duration: 0.35, ease: EASE }}
+                        transition={reduced ? { duration: 0 } : { duration: 0.35, ease: EASE }}
                         className="text-accent text-[0.82rem]"
                       >
                         {NOTIFY.success}
@@ -106,10 +107,10 @@ export default function Notify() {
                     {state === "error" && (
                       <motion.p
                         key="error"
-                        initial={{ opacity: 0, y: -4 }}
+                        initial={reduced ? { opacity: 0 } : { opacity: 0, y: -4 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
-                        transition={{ duration: 0.35, ease: EASE }}
+                        transition={reduced ? { duration: 0 } : { duration: 0.35, ease: EASE }}
                         className="text-[0.82rem] text-red-400"
                       >
                         That doesn&apos;t look like a valid email address.

@@ -39,3 +39,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# stray archives — never commit these
+*.zip
+*.tar
+*.tar.gz
